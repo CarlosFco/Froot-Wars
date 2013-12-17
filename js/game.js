@@ -32,14 +32,14 @@ var game = {
   handlePanning : function(){
     game.offsetLeft++;
   },
-  animation : function(){
+  animate : function(){
     game.handlePanning();
 
     game.context.drawImage(game.currentLevel.backgroundImage, game.offsetLeft/4, 0, 640, 480, 0, 0, 640, 480);
     game.context.drawImage(game.currentLevel.foregroundImage, game.offsetLeft, 0, 640, 480, 0, 0, 640, 480);
 
-    game.context.drawImage(game.slingshotImage, game.slingshowX-game.offsetLeft, game.slingshotY);
-    game.context.drawImage(game.slingshowFrontImage, game.slingshowX-game.offsetLeft, game.slingshowY);
+    game.context.drawImage(game.slingshotImage,game.slingshotX-game.offsetLeft,game.slingshotY);
+    game.context.drawImage(game.slingshotFrontImage,game.slingshotX-game.offsetLeft,game.slingshotY);
 
     if(!game.ended){
       game.animationFrame = window.requestAnimationFrame(game.animate, game.canvas);

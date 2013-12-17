@@ -64,3 +64,8 @@
   padding-left: 10px;
   cursor: pointer;
 }
+#scorescreen #score{
+  position: absolute;
+  top: 5px;
+  right: 20px;
+}
