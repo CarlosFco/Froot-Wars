@@ -5,6 +5,7 @@ var game = {
   init : function(){
     levels.init();
     loader.init();
+    mouse.init();
 
     $('.gamelayer').hide();
     $('#gamestartscreen').show();
@@ -29,8 +30,60 @@ var game = {
     game.ended = false;
     game.animationFrame = window.requestAnimationFrame(game.animate,game.canvas);
   },
+  // 画面最大平移速度，单位为像素没帧
+  maxSpeed : 3,
+  // 画面最大和最小平移范围
+  minOffset : 0,
+  maxOffset : 300,
+  // 画面当前平移位置
+  offsetLeft : 0,
+  // 得分
+  score : 0,
+
+  // 画面中心移到呢我Center
+  panTo : function(newCenter){
+    if (Math.abs(newCenter - game.offsetLeft - game.canvas.width/4)>0
+      && game.offsetLeft <= game.maxOffset && game.offsetLeft >= game.minOffset){
+      var deltaX = Math.round((newCenter - game.offsetLeft - game.canvas.width/4)/2);
+      if(deltaX && Math.abs(deltaX) > game.maxSpeed){
+        deltaX = game.maxSpeed*Math.abs(deltaX)/(deltaX);
+      }
+      game.offsetLeft += deltaX;
+    } else {
+      return true;
+    }
+    if(game.offsetLeft < game.minOffset){
+      game.offsetLeft = game.minOffset;
+      return true;
+    }else if(game.offsetLeft > game.maxOffset){
+      game.offsetLeft = game.maxOffset;
+      return true;
+    }
+    return false;
+  },
   handlePanning : function(){
-    game.offsetLeft++;
+    if(game.mode == "intro"){
+      if(game.panTo(700)){
+        game.mode = "load-next-hero";
+      }
+    }
+    if(game.mode == "wait-for-firing"){
+      if (mouse.dragging){
+        game.panTo(mouse.x + game.offsetLeft);
+      } else {
+        game.panTo(game.slingshotX);
+      }
+    }
+    if(game.mode == "load-next-hero"){
+
+      game.mode = "wait-for-firing";
+    }
+    if(game.mode == "firing"){
+      game.panTo(game.slingshowX);
+    }
+    if(game.mode == "fired"){
+
+    }
   },
   animate : function(){
     game.handlePanning();
