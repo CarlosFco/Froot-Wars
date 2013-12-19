@@ -23,11 +23,32 @@
     var b2RevoluteJointDef = Box2D.Dynamics.Joints.b2RevoluteJointDef;
 
     var world;
-    var scale = 30;
+    var scale = 30;// 30像素表示box2d中的1米
     function init(){
       var gravity = new b2Vec2(0,9.8);
-      var allowSleep = true;
+      var allowSleep = true;// 允许静止物体进入休眠
       world = new b2World(gravity, allowSleep);
+    }
+    function createFloor(){
+      // 定义一个bodydef对象，设为静态类型
+      // 然后设置位置
+      var bodyDef = new b2BodyDef;
+      bodyDef.type = b2Body.b2_staticBody;
+      bodyDef.position.x = 640/2/scale;
+      bodyDef.position.y = 450/scale;
+
+      // fixture用来向body添加shape以实现碰撞检测
+      // fixture的预定义对象，用来建立fixture
+      var fixtureDef = new b2FixtureDef;
+      fixtureDef.density = 1.0;
+      fixtureDef.friction = 0.5;
+      fixtureDef.restitution = 0.2;
+
+      fixtureDef.shape = new b2PolygonShape;
+      fixtureDef.shape.setAsBox(320/scale, 10/scale);
+
+      var body = world.CreateBody(bodyDef);
+      var fixture = body.Createfixture(fixtureDef);
     }
   </script>
 </body>
