@@ -19,7 +19,7 @@ var game = {
     $('#levelselectscreen').show('slow');
   },
   mode : 'intro',
-  slingshowX : 140,
+  slingshotX : 140,
   slingshotY : 280,
   start : function(){
     $('.gameLayer').hide();
