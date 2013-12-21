@@ -218,7 +218,7 @@
       body2.CreateFixture(fixtureDef2);
 
       var jointDef = new b2RevoluteJointDef;
-      var jointCenter = new b2Vec2(470,scale, 50/scale);
+      var jointCenter = new b2Vec2(470/scale, 50/scale);
 
       jointDef.Initialize(body1, body2,jointCenter);
       world.CreateJoint(jointDef);
