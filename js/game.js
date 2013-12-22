@@ -247,3 +247,80 @@ var mouse = {
     mouse.dragging = false;
   }
 };
+
+// var entities
+var entities = {
+  definitions : {
+    "glass" : {
+      fullHealth : 100,
+      density : 2.4,
+      friction : 0.4,
+      restitution : 0.15,
+    },
+    "wood" : {
+      fullHealth : 500,
+      density :0.7,
+      friction : 0.4,
+      restitution : 0.4,
+    },
+    "dirt" : {
+      density : 3.0,
+      friction : 1.5,
+      restitution : 0.2,
+    },
+    "burger" : {
+      shape : "circle",
+      fullHealth : 40,
+      radius : 25,
+      density : 1,
+      friction : 0.5,
+      restitution : 0.4,
+    },
+    "sodacan" : {
+      shape : "rectangle",
+      fullHealth : 80,
+      width : 40,
+      height : 60,
+      density : 1,
+      friction : 0.5,
+      restitution : 0.7,
+    },
+    "fries" : {
+      shape : "rectangle",
+      fullHealth : 50,
+      width : 40,
+      height : 50,
+      density : 1,
+      friction : 0.5,
+      restitutuin : 0.6,
+    },
+    "apple" : {
+      shape : "circle",
+      radius : 25,
+      density : 1.5,
+      friction : 0.5,
+      restitution : 0.4,
+    },
+    "orange" : {
+      shape : "circle",
+      radius : 25,
+      density : 1.5,
+      friction : 0.5,
+      restitution : 0.4,
+    },
+    "strawberry" : {
+      shape : "circle",
+      radius : 15,
+      density : 2.0,
+      friction : 0.5,
+      restitution : 0.4,
+    }
+  },
+
+  // 以物体为参数，创建一个box2d物体，并加入世界
+  create : function(entity){
+
+  },
+  //以物体，物体的位置和角度为参数，在游戏中绘制物体
+  draw : function(entity, position, angle)
+};
