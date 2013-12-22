@@ -51,6 +51,18 @@
       world.Step(timeStep, velocityIterations, positionIterations);
       world.ClearForces();
       world.DrawDebugData();
+
+      if (specialBody){
+        drawSpecialBody();
+      }
+
+      // 摧毁耗尽生命的物体
+      if (specialBody && specialBody.GetUserData().life<=0){
+        world.DestroyBody(specialBody);
+        specialBody = undefined;
+        console.log("The special body was destroyed");
+      }
+
       setTimeout(animate, timeStep);
     }
 
@@ -259,6 +271,40 @@
         }
       };
       world.SetContactListener(listener);
+    }
+
+    function drawSpecialBody(){
+      var position = specialBody.GetPosition();
+      var angle = specialBody.GetAngle();
+
+      // 移动并旋转物体
+      context.translate(position.x*scale, position.y*scale);
+      context.rotate(angle);
+
+      // 绘制实心的圆面
+      context.fillStyle = "rgb(200,150,250)";
+      context.beginPath();
+      context.arc(0,0,30,0,2*Math.PI,false);
+      context.fill();
+
+      // 绘制两个矩形的眼睛
+      context.fillStyle = "rgb(255,255,255)";
+      context.fillRect(-15,-15,10,5);
+      context.fillRect(5,-15,10,5);
+
+      // 绘制向上或向下的圆弧，根据生命值决定是否微笑
+      context.strokeStyle = "rgb(255,255,255)";
+      context.beginPath();
+
+      if (specialBody.GetUserData().life>100){
+        context.arc(0,0,10,Math.PI,2*Math.PI,true);
+      } else {
+        context.arc(0,10,10,Math.PI,2*Math.PI,false);
+      }
+      context.stroke();
+
+      context.rotate(-angle);
+      context.translate(-position.x*scale,-position.y*scale);
     }
   </script>
 </body>
