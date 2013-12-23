@@ -104,11 +104,46 @@ var levels = {
     {
       foreground : 'desert-foreground',
       background : 'clouds-background',
+      entites : [
+        {type:"ground", name:"dirt", x:500, y:440, width:1000,height:20, isStatic:true},
+        {type:"ground", name:"wood", x:180, y:390, width:40, height:80, isStatic:true},
+
+        {type:"block", name:"wood", x:520, y:375, angle:90, width:100, height:25},
+        {type:"block", name:"glass", x:520, y:275, angle:90, width:100, height:25},
+        {type:"villain", name:"burger", x:520, y:200, calories:590},
+
+        {type:"block", name:"wood", x:620, y:375, angle:90, width:100, height:25},
+        {type:"block", name:"glass", x:620, y:275, angle:90, width:100, height:25},
+        {type:"villain", name:"fries", x:620, y:200, calories:420},
+
+        {type:"hero", name:"orange", x:90, y:410},
+        {type:"hero", name:"apple", x:150, y:410},
+      ],
     },
     {
       foreground : 'desert-foreground',
       background : 'clouds-background',
-      entitles : []
+      entites : [
+        {type:"ground", name:"dirt", x:500, y:440, width:1000,height:20, isStatic:true},
+        {type:"ground", name:"wood", x:180, y:390, width:40, height:80, isStatic:true},
+        {type:"block", name:"wood", x:820, y:375, angle:90, width:100, height:25},
+        {type:"block", name:"wood", x:720, y:375, angle:90, width:100, height:25},
+        {type:"block", name:"wood", x:620, y:375, angle:90, width:100, height:25},
+        {type:"block", name:"glass", x:670, y:310, angle:100, height:25},
+        {type:"block", name:"glass", x:770, y:180, angle:100, height:25},
+
+        {type:"block", name:"glass", x:715, y:160, angle:90, width:100, height:25},
+        {type:"block", name:"glass", x:770, y:248, angle:90, width:100, height:25},
+        {type:"block", name:"wood", x:720, y:180, width:100, height:25},
+
+        {type:"villain", name:"burger", x:715, y:160, calories:590},
+        {type:"villain", name:"fries", x:670, y:400, calories:420},
+        {type:"villain", name:"sodacan", x:765, y:395, calories:150},
+
+        {type:"hero", name:"strawberry", x:40, y:420},
+        {type:"hero", name:"orange", x:90, y:410},
+        {type:"hero", name:"apple", x:150, y:410},
+      ],
     }
   ],
   init : function(){
@@ -126,6 +161,8 @@ var levels = {
   },
 
   load : function(number){
+    box2d.init();
+
     game.currentLevel = {number:number, hero:[]};
     game.score = 0;
     $('#score').html('Score: '+game.score);
@@ -319,8 +356,122 @@ var entities = {
 
   // 以物体为参数，创建一个box2d物体，并加入世界
   create : function(entity){
-
+    var definition = entities.definitions[entity.name];
+    if(!definition){
+      console.log("Undefined entity name",entity.name);
+      return;
+    }
+    switch(entity.type){
+      case "block": // 障碍物
+        entity.health = definition.fullHealth;
+        entity.fullHealth = definition.fullHealth;
+        entity.shape = "rectangle";
+        entity.sprite = loader.loadImage("images/entities/"+entity.name+".png");
+        box2d.createRectangle(entity, definition);
+        break;
+      case "ground":
+        // 不可摧毁物体，不必具有生命值
+        entity.shape = "rectangle";
+        // 不会被画出，所以不必具有图像
+        box2d.createRectangle(entity, definition);
+        break;
+      case "hero": // 简单的圆
+      case "villain": // 可以是圆形或是矩形
+        entity.health = definition.fullHealth;
+        entity.fullHealth = definition.fullHealth;
+        entity.sprite = loader.loadImage("images/entities/"+entity.name+".png");
+        entity.shape = definition.shape;
+        if(definition.shape == "circle"){
+          entity.radius = definition.radius;
+          box2d.createCircle(entity, definition);
+        } else if(definition.shape == "rectangle"){
+          entity.width = definition.width;
+          entity.height = definition.height;
+          box2d.createRectangle(entity, definition);
+        }
+        break;
+      default:
+        console.log("Undefined entity type", entity.type);
+        break;
+    }
   },
   //以物体，物体的位置和角度为参数，在游戏中绘制物体
-  draw : function(entity, position, angle)
+  draw : function(entity, position, angle){
+
+  }
 };
+
+// start box2d
+var b2Vec2 = Box2D.Common.Math.b2Vec2;
+var b2BodyDef = Box2D.Dynamics.b2BodyDef;
+var b2Body = Box2D.Dynamics.b2Body;
+var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
+var b2Fixture = Box2d.Dynamics.b2Fixture;
+var b2World = Box2D.Dynamics.b2World;
+var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
+var b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
+var b2DebugDraw = Box2D.Dynamics.b2DefbugDraw;
+
+var box2d = {
+  scale : 30,
+  init : function(){
+    var gravity = new b2Vec2(0,9.8);
+    var allowSleep = true;
+    box2d.world = new b2World(gravity, allowSleep);
+  },
+
+  createRectangle : function(entity, definition){
+    var bodyDef = new b2BodyDef;
+    if(entity.isStatic){
+      bodyDef.type = b2Body.b2_staticBody;
+    }000 else {
+      bodyDef.type = b2Body.b2_dynamicBody;
+    }
+    bodyDef.position.x = entity.x / box2d.scale;
+    bodyDef.position.y = entity.y / box2d.scale;
+    if (entity.angle) {
+      bodyDef.angle = Math.PI*entity.engle / 180;
+    }
+
+    var fixtureDef = new b2FixtureDef;
+    fixtureDef.density = definition.density;
+    fixtureDef.friction = definition.friction;
+    fixtureDef.restitution = definition.restitution;
+
+    fixtureDef.shape = new b2PolygonShape;
+    fixtureDef.shape.SetAsBox(entity.width/2/box2d.scale, entity.height/2/box2d/scale);
+
+    var body = box2d.world.CreateBody(bodyDef);
+    body.SetUserData(entity);
+
+    var fixture = body.CreateFixture(fixtureDef);
+    return body;
+  },
+
+  createCircle : function(entity, definiton){
+    var bodyDef = new b2BodyDef;
+    if (entity.isStatic){
+      bodyDef.type = b2Body.b2_staticBody;
+    } else {
+      bodyDef.type = b2Body.b2_dynamicBody;
+    }
+    bodyDef.position.x = entity.x / box2d.scale;
+    bodyDef.position.y = entity.y / box2d.scale;
+
+    if(entity.angle){
+      bodyDef.angle = Math.PI * entity.angle/180;
+    }
+    var fixtureDef = new b2FixtureDef;
+    fixtureDef.density = definiton.density;
+    fixtureDef.friction = definiton.friction;
+    fixtureDef.restitution = definition.restitution;
+
+    fixtureDef.shape = new b2CircleShape(entity.radius/box2d.scale);
+
+    var body = box2d.world.CreateBody(bodyDef);
+    body.SetUserData(entity);
+
+    var fixture = body.CreateFixture(fixtureDef);
+    return body;
+  },
+}
