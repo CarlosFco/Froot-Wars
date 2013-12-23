@@ -92,11 +92,17 @@ var game = {
     game.context.drawImage(game.currentLevel.foregroundImage, game.offsetLeft, 0, 640, 480, 0, 0, 640, 480);
 
     game.context.drawImage(game.slingshotImage,game.slingshotX-game.offsetLeft,game.slingshotY);
+    
+    game.drawAllBodies();
+
     game.context.drawImage(game.slingshotFrontImage,game.slingshotX-game.offsetLeft,game.slingshotY);
 
     if(!game.ended){
       game.animationFrame = window.requestAnimationFrame(game.animate, game.canvas);
     }
+  },
+  drawAllBodies : function(){
+    box2d.world.DrawDebugData();
   }
 };
 var levels = {
@@ -172,6 +178,11 @@ var levels = {
     game.currentLevel.foregroundImage = loader.loadImage("images/backgrounds/"+level.foreground+".png");
     game.slingshotImage = loader.loadImage("images/slingshot.png");
     game.slingshotFrontImage = loader.loadImage("images/slingshot-front.png");
+
+    for (var i = level.entites.length - 1; i >= 0; i--){
+      var entity = level.entites[i];
+      entities.create(entity);
+    };
 
     if(loader.loaded){
       game.start();
@@ -406,11 +417,11 @@ var b2Vec2 = Box2D.Common.Math.b2Vec2;
 var b2BodyDef = Box2D.Dynamics.b2BodyDef;
 var b2Body = Box2D.Dynamics.b2Body;
 var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
-var b2Fixture = Box2d.Dynamics.b2Fixture;
+var b2Fixture = Box2D.Dynamics.b2Fixture;
 var b2World = Box2D.Dynamics.b2World;
 var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
 var b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
-var b2DebugDraw = Box2D.Dynamics.b2DefbugDraw;
+var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
 
 var box2d = {
   scale : 30,
@@ -418,13 +429,22 @@ var box2d = {
     var gravity = new b2Vec2(0,9.8);
     var allowSleep = true;
     box2d.world = new b2World(gravity, allowSleep);
+
+    var debugContext = document.getElementById('debugcanvas').getContext('2d');
+    var debugDraw = new b2DebugDraw();
+    debugDraw.SetSprite(debugContext);
+    debugDraw.SetDrawScale(box2d.scale);
+    debugDraw.SetFillAlpha(0.3);
+    debugDraw.SetLineThickness(1.0);
+    debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
+    box2d.world.SetDebugDraw(debugDraw);
   },
 
   createRectangle : function(entity, definition){
     var bodyDef = new b2BodyDef;
     if(entity.isStatic){
       bodyDef.type = b2Body.b2_staticBody;
-    }000 else {
+    } else {
       bodyDef.type = b2Body.b2_dynamicBody;
     }
     bodyDef.position.x = entity.x / box2d.scale;
@@ -439,7 +459,7 @@ var box2d = {
     fixtureDef.restitution = definition.restitution;
 
     fixtureDef.shape = new b2PolygonShape;
-    fixtureDef.shape.SetAsBox(entity.width/2/box2d.scale, entity.height/2/box2d/scale);
+    fixtureDef.shape.SetAsBox(entity.width/2/box2d.scale, entity.height/2/box2d.scale);
 
     var body = box2d.world.CreateBody(bodyDef);
     body.SetUserData(entity);
@@ -464,7 +484,7 @@ var box2d = {
     var fixtureDef = new b2FixtureDef;
     fixtureDef.density = definiton.density;
     fixtureDef.friction = definiton.friction;
-    fixtureDef.restitution = definition.restitution;
+    fixtureDef.restitution = definiton.restitution;
 
     fixtureDef.shape = new b2CircleShape(entity.radius/box2d.scale);
 
