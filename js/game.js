@@ -61,6 +61,20 @@ var game = {
     }
     return false;
   },
+  countHerosAndVillains : function(){
+    game.heroes = [];
+    game.villains = [];
+    for (var body = box2d.world.GetBodyList(); body; body = body.GetNext()) {
+      var entity = body.GetUserData();
+      if(entity){
+        if(entity.type == "hero"){
+          game.heroes.push(body);
+        } else if (entity.type == "villain") {
+          game.villains.push(body);
+        }
+      }
+    }
+  },
   handlePanning : function(){
     if(game.mode == "intro"){
       if(game.panTo(700)){
@@ -74,19 +88,71 @@ var game = {
         game.panTo(game.slingshotX);
       }
     }
-    if(game.mode == "load-next-hero"){
-
-      game.mode = "wait-for-firing";
-    }
     if(game.mode == "firing"){
-      game.panTo(game.slingshowX);
+      if(mouse.down) {
+        game.panTo(game.slingshotX);
+        game.currentHero.SetPosition({x:(mouse.x+game.offsetLeft)/box2d.scale,y:mouse.y/box2d.scale});
+      } else {
+        game.mode = "fired";
+        var impulseScaleFactor = 0.75;
+        var impulse = new b2Vec2((game.slingshotX+35-mosue.x-game.offsetLeft)*impulseScaleFactor,
+          (game.slingshotY+25-mouse.y)*impulseScaleFactor);
+        game.currentHero.ApplyImpulse(impulse, game.currentHero.GetWorldCenter());
+      }
     }
     if(game.mode == "fired"){
+      var heroX = game.currentHero.GetPosition().x*box2d.scale;
+      game.panTo(heroX);
+      // 直到该英雄停止移动或移除边界
+      if(!game.currentHero.IsAwake() || heroX<0 || heroX > game.currentLevel.foregroundImage.width) {
+        box2d.world.DestroyBody(game.currentHero);
+        game.currentHero = undefined;
 
+        game.mode = "load-next-hero";
+      }
+    }
+
+    if (game.mode == "load-next-hero") {
+      game.countHerosAndVillains();
+
+      if (game.villains.length == 0) {
+        game.mode = "level-success";
+        return;
+      }
+      if (game.heroes.length == 0) {
+        game.mode = "level-failure";
+        return;
+      }
+
+      // 加载英雄并设置模式为wait-for-firing
+      if(!game.currentHero){
+        game.currentHero = game.heroes[game.heroes.length-1];
+        game.currentHero.SetPosition({x:180/box2d.scale,y:200/box2d.scale});
+        game.currentHero.SetLinearVelocity({x:0,y:0});
+        game.currentHero.SetAngularVelocity(0);
+        game.currentHero.SetAwake(true);
+      } else {
+        // 等待英雄结束弹跳并进入休眠，接着切换到wait-for-firing阶段
+        game.panTo(game.slingshotX);
+        if(!game.currentHero.IsAwake()){
+          game.mode = "wait-for-firing";
+        }
+      }
     }
   },
   animate : function(){
     game.handlePanning();
+
+    var currentTime = new Date().getTime();
+    var timeStep;
+    if (game.lastUpdateTime){
+      timeStep = (currentTime - game.lastUpdateTime)/1000;
+      if(timeStep >2/60){
+        timeStep = 2/60
+      }
+      box2d.step(timeStep);
+    } 
+    game.lastUpdateTime = currentTime;
 
     game.context.drawImage(game.currentLevel.backgroundImage, game.offsetLeft/4, 0, 640, 480, 0, 0, 640, 480);
     game.context.drawImage(game.currentLevel.foregroundImage, game.offsetLeft, 0, 640, 480, 0, 0, 640, 480);
@@ -103,7 +169,25 @@ var game = {
   },
   drawAllBodies : function(){
     box2d.world.DrawDebugData();
-  }
+
+    for (var body = box2d.world.GetBodyList(); body; body = body.GetNext()) {
+      var entity = body.GetUserData();
+
+      if(entity) {
+        entities.draw(entity,body.GetPosition(),body.GetAngle());
+      }
+    }
+  },
+  mouseOnCurrentHero : function(){
+    if (!game.currentHero) {
+      return false;
+    }
+    var position = game.currentHero.GetPosition();
+    var distanceSquared = Math.pow(position.x*box2d.scale - mouse.x - game.offsetLeft,2)
+      + Math.pow(position.y*box2d.scale-mouse.y,2);
+    var radiusSquared = Math.pow(game.currentHero.GetUserData().radius,2);
+    return (distanceSquared <= radiusSquared);
+  },
 };
 var levels = {
   data : [
@@ -114,12 +198,12 @@ var levels = {
         {type:"ground", name:"dirt", x:500,y:440,width:1000,height:20,isStatic:true},
         {type:"ground", name:"wood", x:185,y:390,width:30,height:80,isStatic:true},
 
-        {type:"block", name:"wood", x:520,y:380,angle:90,width:100,height:25},
-        {type:"block", name:"glass", x:520,y:280,angle:90,width:100,height:25},
+        {type:"block", name:"wood", x:520,y:380,angle:90,width:25,height:100},
+        {type:"block", name:"glass", x:520,y:280,angle:90,width:25,height:100},
         {type:"villain", name:"burger",x:520,y:205,calories:590},
 
-        {type:"block", name:"wood", x:620,y:380,angle:90,width:100,height:25},
-        {type:"block", name:"glass", x:620,y:280,angle:90,width:100,height:25},
+        {type:"block", name:"wood", x:620,y:380,angle:90,width:25,height:100},
+        {type:"block", name:"glass", x:620,y:280,angle:90,width:25,height:100},
         {type:"villain", name:"fries", x:620,y:205,calories:420},
 
         {type:"hero", name:"orange",x:80,y:405},
@@ -377,8 +461,9 @@ var entities = {
       case "block": // 障碍物
         entity.health = definition.fullHealth;
         entity.fullHealth = definition.fullHealth;
-        entity.shape = "rectangle";
-        entity.sprite = loader.loadImage("images/entities/"+entity.name+".png");
+        entity.shape = "rectangle"; 
+        entity.sprite = loader.loadImage("images/entities/"+entity.name+".png");            
+        // entity.breakSound = game.breakSound[entity.name];
         box2d.createRectangle(entity, definition);
         break;
       case "ground":
@@ -409,7 +494,29 @@ var entities = {
   },
   //以物体，物体的位置和角度为参数，在游戏中绘制物体
   draw : function(entity, position, angle){
+    game.context.translate(position.x*box2d.scale-game.offsetLeft, position.y*box2d.scale);
+    game.context.rotate(angle);
+    switch (entity.type){
+      case "block":
+        game.context.drawImage(entity.sprite,0,0,entity.sprite.width,entity.sprite.height,
+            -entity.width/2-1,-entity.height/2-1,entity.width+2,entity.height+2); 
+      break;
+      case "villain":
+      case "hero":
+        if (entity.shape == "circle") {
+          game.context.drawImage(entity.sprite,0,0,entity.sprite.width,entity.sprite.height,
+              -entity.radius-1,-entity.radius-1,entity.radius*2+2,entity.radius*2+2); 
+        } else if (entity.shape=="rectangle") {
+          game.context.drawImage(entity.sprite,0,0,entity.sprite.width,entity.sprite.height,
+              -entity.width/2-1,-entity.height/2-1,entity.width+2,entity.height+2);
+        }
+      break;
+      case "ground":
+      break;
+    }
 
+    game.context.rotate(-angle);
+    game.context.translate(-position.x*box2d.scale+game.offsetLeft,-position.y*box2d.scale);
   }
 };
 
@@ -494,5 +601,9 @@ var box2d = {
 
     var fixture = body.CreateFixture(fixtureDef);
     return body;
+  },
+
+  step : function(timeStep) {
+    // box2d.world.Step(timeStep,8,3);
   },
 }
