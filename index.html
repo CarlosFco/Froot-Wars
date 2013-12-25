@@ -39,5 +39,13 @@
     </div>
   </div>
   <canvas id="debugcanvas" width="1000" height="480" style="border:1px solid black"></canvas>
+  <div id="endingscreen" class="gamelayer">
+    <div>
+      <p id="endingmessage">The Level Is Over Message</p>
+      <p id="playcurrentlevel" onclick="game.startNextLevel()"><img src="images/icons/prev.png" alt="">Replay Current Level</p>
+      <p id="playnextlevel" onclick="game.startNextLevel()"><img src="images/icons/next.png" alt="">Play Next Level</p>
+      <p id="returntolevelscreen" onclick="game.showLevelScreen()"><img src="images/icons/return.png" alt="">Return to Level Screen</p>
+    </div>
+  </div>
 </body>
 </html>

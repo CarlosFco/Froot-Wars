@@ -6,7 +6,6 @@ var game = {
     levels.init();
     loader.init();
     mouse.init();
-
     $('.gamelayer').hide();
     $('#gamestartscreen').show();
 
@@ -139,6 +138,14 @@ var game = {
         }
       }
     }
+
+    if(game.mode=="level-success" || game.mode=="level-failure"){
+      if(game.panTo(0)){
+        game.ended = true;
+
+        game.showEndingScreen();
+      }
+    }
   },
   animate : function(){
     game.handlePanning();
@@ -188,6 +195,22 @@ var game = {
     var radiusSquared = Math.pow(game.currentHero.GetUserData().radius,2);
     return (distanceSquared <= radiusSquared);
   },
+  showEndingScreen : function(){
+    if(game.mode=="level-success"){
+      if(game.currentLevel.number<levels.data.length-1){
+        $('#endingmessage').html('Level Complete. Well Done!!');
+        $('#playnextlevel').show();
+      } else {
+        $('endingmessage').html('All Levels Complete. Well Done!!');
+        $('playnextlevel').show();
+      }
+    } else if (game.mode=="level-failure"){
+      $('#endingmessage').html('Failed. Play Again?');
+      $('#playnextlevel').hide();
+    }
+
+    $('#endingscreen').show();
+  }
 };
 var levels = {
   data : [
@@ -373,7 +396,7 @@ var mouse = {
     mouse.down = true;
     mouse.downX = mouse.x;
     mouse.downY = mouse.y;
-    ev.originalEvent.preventDefault();
+    ev.preventDefault();
   },
   mouseuphandler : function(ev){
     mouse.down = false;
@@ -462,8 +485,7 @@ var entities = {
         entity.health = definition.fullHealth;
         entity.fullHealth = definition.fullHealth;
         entity.shape = "rectangle"; 
-        entity.sprite = loader.loadImage("images/entities/"+entity.name+".png");            
-        // entity.breakSound = game.breakSound[entity.name];
+        entity.sprite = loader.loadImage("images/entities/"+entity.name+".png");
         box2d.createRectangle(entity, definition);
         break;
       case "ground":
@@ -546,6 +568,27 @@ var box2d = {
     debugDraw.SetLineThickness(1.0);
     debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
     box2d.world.SetDebugDraw(debugDraw);
+
+    var listener = new Box2D.Dynamics.b2ContactListener;
+    listener.PostSolve = function(contact, impulse){
+      var body1 = contact.GetFixtureA().GetBody();
+      var body2 = contact.GetFixtureB().GetBody();
+      var entity1 = body1.GetUserData();
+      var entity2 = body2.GetUserData();
+
+      var impulseAlongNormal = Math.abs(impulse.normalImpulses[0]);
+
+      if(impulseAlongNormal>5){
+        if(entity1.health){
+          entity1.health -= impulseAlongNormal;
+        }
+
+        if(entity2.health){
+          entity2.health -= impulseAlongNormal;
+        }
+      }
+    };
+    box2d.world.SetContactListener(listener);
   },
 
   createRectangle : function(entity, definition){
