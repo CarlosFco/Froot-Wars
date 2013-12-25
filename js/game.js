@@ -198,12 +198,12 @@ var levels = {
         {type:"ground", name:"dirt", x:500,y:440,width:1000,height:20,isStatic:true},
         {type:"ground", name:"wood", x:185,y:390,width:30,height:80,isStatic:true},
 
-        {type:"block", name:"wood", x:520,y:380,angle:90,width:25,height:100},
-        {type:"block", name:"glass", x:520,y:280,angle:90,width:25,height:100},
+        {type:"block", name:"wood", x:520,y:380,angle:90,width:100,height:25},
+        {type:"block", name:"glass", x:520,y:280,angle:90,width:100,height:25},
         {type:"villain", name:"burger",x:520,y:205,calories:590},
 
-        {type:"block", name:"wood", x:620,y:380,angle:90,width:25,height:100},
-        {type:"block", name:"glass", x:620,y:280,angle:90,width:25,height:100},
+        {type:"block", name:"wood", x:620,y:380,angle:90,width:100,height:25},
+        {type:"block", name:"glass", x:620,y:280,angle:90,width:100,height:25},
         {type:"villain", name:"fries", x:620,y:205,calories:420},
 
         {type:"hero", name:"orange",x:80,y:405},
@@ -555,10 +555,11 @@ var box2d = {
     } else {
       bodyDef.type = b2Body.b2_dynamicBody;
     }
+
     bodyDef.position.x = entity.x / box2d.scale;
     bodyDef.position.y = entity.y / box2d.scale;
     if (entity.angle) {
-      bodyDef.angle = Math.PI*entity.engle / 180;
+      bodyDef.angle = Math.PI*entity.angle / 180;
     }
 
     var fixtureDef = new b2FixtureDef;
@@ -576,7 +577,7 @@ var box2d = {
     return body;
   },
 
-  createCircle : function(entity, definiton){
+  createCircle : function(entity, definition){
     var bodyDef = new b2BodyDef;
     if (entity.isStatic){
       bodyDef.type = b2Body.b2_staticBody;
@@ -590,9 +591,9 @@ var box2d = {
       bodyDef.angle = Math.PI * entity.angle/180;
     }
     var fixtureDef = new b2FixtureDef;
-    fixtureDef.density = definiton.density;
-    fixtureDef.friction = definiton.friction;
-    fixtureDef.restitution = definiton.restitution;
+    fixtureDef.density = definition.density;
+    fixtureDef.friction = definition.friction;
+    fixtureDef.restitution = definition.restitution;
 
     fixtureDef.shape = new b2CircleShape(entity.radius/box2d.scale);
 
