@@ -648,6 +648,6 @@ var box2d = {
   },
 
   step : function(timeStep) {
-    // box2d.world.Step(timeStep,8,3);
+    box2d.world.Step(timeStep,8,3);
   },
 }
