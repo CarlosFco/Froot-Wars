@@ -396,7 +396,7 @@ var mouse = {
     mouse.down = true;
     mouse.downX = mouse.x;
     mouse.downY = mouse.y;
-    ev.preventDefault();
+    ev.originalEvent.preventDefault();
   },
   mouseuphandler : function(ev){
     mouse.down = false;

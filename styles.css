@@ -51,11 +51,11 @@
 }
 
 /*计分板*/
-#scoresreen{
+#scorescreen {
   height: 60px;
   font: 32px Comic Sans MS;
   text-shadow: 0 0 2px #000;
-  color: white;
+  color: #FFF;
 }
 #scorescreen img{
   opacity: 0.6;
