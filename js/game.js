@@ -82,7 +82,11 @@ var game = {
     }
     if(game.mode == "wait-for-firing"){
       if (mouse.dragging){
-        game.panTo(mouse.x + game.offsetLeft);
+        if (game.mouseOnCurrentHero()){
+          game.mode="firing";
+        }else {
+          game.panTo(mouse.x + game.offsetLeft);
+        }
       } else {
         game.panTo(game.slingshotX);
       }
@@ -94,7 +98,7 @@ var game = {
       } else {
         game.mode = "fired";
         var impulseScaleFactor = 0.75;
-        var impulse = new b2Vec2((game.slingshotX+35-mosue.x-game.offsetLeft)*impulseScaleFactor,
+        var impulse = new b2Vec2((game.slingshotX+35-mouse.x-game.offsetLeft)*impulseScaleFactor,
           (game.slingshotY+25-mouse.y)*impulseScaleFactor);
         game.currentHero.ApplyImpulse(impulse, game.currentHero.GetWorldCenter());
       }
