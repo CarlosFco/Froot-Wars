@@ -6,6 +6,17 @@ var game = {
     levels.init();
     loader.init();
     mouse.init();
+
+    game.backgroundMusic = loader.loadSound('audio/gurdonark-kindergarten');
+
+    game.slingshotReleasedSound = loader.loadSound("audio/released");
+    game.bounceSound = loader.loadSound("audio/bounce");
+    game.breakSound = {
+      "glass" : loader.loadSound("audio/glassbreak"),
+      "wood" : loader.loadSound("audio/woodbreak")
+    };
+
+    
     $('.gamelayer').hide();
     $('#gamestartscreen').show();
 
@@ -172,11 +183,16 @@ var game = {
     
     game.drawAllBodies();
 
+    if(game.mode == "firing"){
+      game.drawSlingshotBand();
+    }
+
     game.context.drawImage(game.slingshotFrontImage,game.slingshotX-game.offsetLeft,game.slingshotY);
 
     if(!game.ended){
       game.animationFrame = window.requestAnimationFrame(game.animate, game.canvas);
     }
+
   },
   drawAllBodies : function(){
     box2d.world.DrawDebugData();
@@ -185,7 +201,17 @@ var game = {
       var entity = body.GetUserData();
 
       if(entity) {
-        entities.draw(entity,body.GetPosition(),body.GetAngle());
+        var entityX = body.GetPosition().x*box2d.scale;
+        if(entityX<0 || entityX > game.currentLevel.foregroundImage.width |
+          (entity.health && entity.health < 0)){
+          box2d.world.DestroyBody(body);
+          if(entity.type=="villain"){
+            game.score += entity.calories;
+            $("#score").html("Score: "+game.score);
+          }
+        } else {
+          entities.draw(entity,body.GetPosition(),body.GetAngle());
+        }
       }
     }
   },
@@ -214,6 +240,42 @@ var game = {
     }
 
     $('#endingscreen').show();
+  },
+  drawSlingshotBand : function(){
+    game.context.strokeStyle = "rgb(68,31,11)";
+    game.context.lineWidth = 6;
+
+    var radius = game.currentHero.GetUserData().radius;
+    var heroX = game.currentHero.GetPosition().x*box2d.scale;
+    var heroY = game.currentHero.GetPosition().y*box2d.scale;
+    var angle = Math.atan2(game.slingshotY+25-heroY, game.slingshotX+50-heroX);
+
+    var heroFarEdgeX = heroX - radius * Math.cos(angle);
+    var heroFarEdgeY = heroY - radius * Math.sin(angle);
+
+    game.context.beginPath();
+    game.context.moveTo(game.slingshotX+50-game.offsetLeft, game.slingshotY+25);
+
+    game.context.lineTo(heroX - game.offsetLeft, heroY);
+    game.context.stroke();
+
+    entities.draw(game.currentHero.GetUserData(), game.currentHero.GetPosition(), game.currentHero.GetAngle());
+
+    game.context.beginPath();
+    game.context.moveTo(heroFarEdgeX-game.offsetLeft, heroFarEdgeY);
+
+    game.context.lineTo(game.slingshotX-game.offsetLeft+10, game.slingshotY+30);
+    game.context.stroke();
+  },
+  restartLevel : function(){
+    window.cancelAnimationFrame(game.animationFrame);
+    game.lastUpdateTime = undefined;
+    levels.load(game.currentLevel.number);
+  },
+  startNextLevel : function(){
+    window.CancelAnimationFrame(game.animationFrame);
+    game.lastUpdateTime = undefined;
+    levels.load(game.currentLevel.number+1);
   }
 };
 var levels = {
