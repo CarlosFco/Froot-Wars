@@ -16,7 +16,6 @@ var game = {
       "wood" : loader.loadSound("audio/woodbreak")
     };
 
-    
     $('.gamelayer').hide();
     $('#gamestartscreen').show();
 
@@ -35,6 +34,7 @@ var game = {
     $('.gameLayer').hide();
     $('#gamecanvas').show();
     $('#scorescreen').show();
+    $('#endingscreen').hide();
     game.mode = "intro";
     game.offsetLeft = 0;
     game.ended = false;
@@ -283,7 +283,7 @@ var levels = {
     {
       foreground : 'desert-foreground',
       background : 'clouds-background',
-      entites : [
+      entities : [
         {type:"ground", name:"dirt", x:500,y:440,width:1000,height:20,isStatic:true},
         {type:"ground", name:"wood", x:185,y:390,width:30,height:80,isStatic:true},
 
@@ -302,7 +302,7 @@ var levels = {
     {
       foreground : 'desert-foreground',
       background : 'clouds-background',
-      entites : [
+      entities : [
         {type:"ground", name:"dirt", x:500,y:440,width:1000,height:20,isStatic:true},
         {type:"ground", name:"wood", x:185,y:390,width:30,height:80,isStatic:true},
   
@@ -353,8 +353,8 @@ var levels = {
     game.slingshotImage = loader.loadImage("images/slingshot.png");
     game.slingshotFrontImage = loader.loadImage("images/slingshot-front.png");
 
-    for (var i = level.entites.length - 1; i >= 0; i--){
-      var entity = level.entites[i];
+    for (var i = level.entities.length - 1; i >= 0; i--){
+      var entity = level.entities[i];
       entities.create(entity);
     };
 
@@ -552,6 +552,7 @@ var entities = {
         entity.fullHealth = definition.fullHealth;
         entity.shape = "rectangle"; 
         entity.sprite = loader.loadImage("images/entities/"+entity.name+".png");
+        entity.breakSound = game.breakSound[entity.name];
         box2d.createRectangle(entity, definition);
         break;
       case "ground":
