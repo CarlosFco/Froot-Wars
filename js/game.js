@@ -267,16 +267,16 @@ var game = {
     game.context.lineTo(game.slingshotX-game.offsetLeft+10, game.slingshotY+30);
     game.context.stroke();
   },
-  restartLevel : function(){
-    window.cancelAnimationFrame(game.animationFrame);
+  restartLevel:function(){
+    window.cancelAnimationFrame(game.animationFrame);   
     game.lastUpdateTime = undefined;
     levels.load(game.currentLevel.number);
   },
-  startNextLevel : function(){
-    window.CancelAnimationFrame(game.animationFrame);
+  startNextLevel:function(){
+    window.cancelAnimationFrame(game.animationFrame);   
     game.lastUpdateTime = undefined;
     levels.load(game.currentLevel.number+1);
-  }
+  },
 };
 var levels = {
   data : [
