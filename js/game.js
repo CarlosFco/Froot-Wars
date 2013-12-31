@@ -567,6 +567,7 @@ var entities = {
         entity.fullHealth = definition.fullHealth;
         entity.sprite = loader.loadImage("images/entities/"+entity.name+".png");
         entity.shape = definition.shape;
+        entity.bounceSound = game.bounceSound;
         if(definition.shape == "circle"){
           entity.radius = definition.radius;
           box2d.createCircle(entity, definition);
