@@ -35,6 +35,9 @@ var game = {
     $('#gamecanvas').show();
     $('#scorescreen').show();
     $('#endingscreen').hide();
+
+    game.startBackgroundMusic();
+
     game.mode = "intro";
     game.offsetLeft = 0;
     game.ended = false;
@@ -108,6 +111,7 @@ var game = {
         game.currentHero.SetPosition({x:(mouse.x+game.offsetLeft)/box2d.scale,y:mouse.y/box2d.scale});
       } else {
         game.mode = "fired";
+        game.slingshotReleasedSound.play();
         var impulseScaleFactor = 0.75;
         var impulse = new b2Vec2((game.slingshotX+35-mouse.x-game.offsetLeft)*impulseScaleFactor,
           (game.slingshotY+25-mouse.y)*impulseScaleFactor);
@@ -209,6 +213,9 @@ var game = {
             game.score += entity.calories;
             $("#score").html("Score: "+game.score);
           }
+          if(entity.breakSound){
+            entity.breakSound.play();
+          }
         } else {
           entities.draw(entity,body.GetPosition(),body.GetAngle());
         }
@@ -226,6 +233,7 @@ var game = {
     return (distanceSquared <= radiusSquared);
   },
   showEndingScreen : function(){
+    game.stopBackgroundMusic();
     if(game.mode=="level-success"){
       if(game.currentLevel.number<levels.data.length-1){
         $('#endingmessage').html('Level Complete. Well Done!!');
@@ -277,6 +285,27 @@ var game = {
     game.lastUpdateTime = undefined;
     levels.load(game.currentLevel.number+1);
   },
+  startBackgroundMusic : function(){
+    var toggleImage = $("#togglemusic")[0];
+    game.backgroundMusic.play();
+    toggleImage.src = "images/icons/sound.png";
+  },
+  stopBackgroundMusic : function(){
+    var toggleImage = $("#togglemusic")[0];
+    toggleImage.src = "images/icons/nosound.png";
+    game.backgroundMusic.pause();
+    game.backgroundMusic.currentTime = 0;
+  },
+  toggleBackgroundMusic : function(){
+    var toggleImage = $("#togglemusic")[0];
+    if(game.backgroundMusic.paused){
+      game.backgroundMusic.play();
+      toggleImage.src = "images/icons/sound.png";
+    } else {
+      game.backgroundMusic.pause();
+      $("#togglemusic")[0].src = "images/icons/nosound.png";
+    }
+  }
 };
 var levels = {
   data : [
@@ -653,6 +682,14 @@ var box2d = {
 
         if(entity2.health){
           entity2.health -= impulseAlongNormal;
+        }
+
+        // 如果物体具有弹跳音，则播放他
+        if(entity1.bounceSound){
+          entity1.bounceSound.play();
+        }
+        if(entity2.bounceSound){
+          entity2.bounceSound.play();
         }
       }
     };
